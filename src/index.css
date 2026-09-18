@@ -1,0 +1,6 @@
+* { box-sizing: border-box; }
+html, body, #root { min-height: 100%; margin: 0; }
+body { font-family: Arial, sans-serif; background: #008080; color: #000; }
+.boot { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
+.boot section { background: #c0c0c0; border: 2px outset #fff; padding: 16px; min-width: 280px; }
+.boot p { margin: 8px 0; }
