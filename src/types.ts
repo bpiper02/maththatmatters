@@ -24,6 +24,22 @@ export type Question = {
   signature: string;
 };
 
+export type Attempt = {
+  question: Question;
+  userAnswer: number;
+  correct: boolean;
+  slow: boolean;
+  ms: number;
+  timestamp: number;
+};
+
+export type SessionRecord = {
+  id: string;
+  startedAt: number;
+  duration: number;
+  attempts: Attempt[];
+};
+
 export type ArithmeticConfig = {
   enabled: boolean;
   left: Range;
@@ -81,3 +97,5 @@ export type DrillConfig = {
   ratios: RatioConfig;
   applied: { enabled: boolean };
 };
+
+export type DrillMode = 'adaptive' | 'custom';

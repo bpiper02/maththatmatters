@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react';
-import type { DrillConfig } from '../types';
+import type { DrillConfig, DrillMode } from '../types';
 import { RangeFields } from './RangeFields';
 
 type Props = {
@@ -9,6 +9,8 @@ type Props = {
   setDuration: (value: number) => void;
   submitMode: 'auto' | 'enter';
   setSubmitMode: (value: 'auto' | 'enter') => void;
+  drillMode: DrillMode;
+  setDrillMode: (value: DrillMode) => void;
   errors: string[];
   onStart: () => void;
 };
@@ -22,6 +24,8 @@ export function SetupPanel({
   setDuration,
   submitMode,
   setSubmitMode,
+  drillMode,
+  setDrillMode,
   errors,
   onStart,
 }: Props) {
@@ -38,15 +42,15 @@ export function SetupPanel({
       <fieldset>
         <legend>Session</legend>
         <div className="inline-controls">
+          <span>Mode</span>
+          <label><input type="radio" name="drillMode" checked={drillMode === 'adaptive'} onChange={() => setDrillMode('adaptive')} /> Adaptive</label>
+          <label><input type="radio" name="drillMode" checked={drillMode === 'custom'} onChange={() => setDrillMode('custom')} /> Random mix</label>
+        </div>
+        <div className="inline-controls">
           <span>Time</span>
           {durations.map((seconds) => (
             <label key={seconds}>
-              <input
-                type="radio"
-                name="duration"
-                checked={duration === seconds}
-                onChange={() => setDuration(seconds)}
-              />
+              <input type="radio" name="duration" checked={duration === seconds} onChange={() => setDuration(seconds)} />
               {seconds < 60 ? seconds + 's' : seconds / 60 + 'm'}
             </label>
           ))}
@@ -81,7 +85,7 @@ export function SetupPanel({
         <legend><label><input type="checkbox" checked={config.division.enabled} onChange={(e) => edit((d) => { d.division.enabled = e.target.checked; })} /> Division</label></legend>
         <RangeFields label="Divisor" value={config.division.divisor} min={1} onChange={(value) => edit((d) => { d.division.divisor = value; })} />
         <RangeFields label="Quotient" value={config.division.quotient} onChange={(value) => edit((d) => { d.division.quotient = value; })} />
-        <small>Dividend is generated as divisor × quotient, so answers stay whole.</small>
+        <small>Dividend = divisor × quotient.</small>
       </fieldset>
 
       <fieldset>
@@ -90,12 +94,7 @@ export function SetupPanel({
         <RangeFields label="Base" value={config.percentages.base} onChange={(value) => edit((d) => { d.percentages.base = value; })} />
         <label><input type="checkbox" checked={config.percentages.cleanAnswers} onChange={(e) => edit((d) => { d.percentages.cleanAnswers = e.target.checked; })} /> Prefer clean mental answers</label>
         <div className="mode-list">
-          {([
-            ['of', 'X% of Y'],
-            ['findPercent', 'Find %'],
-            ['change', '% increase'],
-            ['reverse', 'Reverse %'],
-          ] as const).map(([key, label]) => (
+          {([['of', 'X% of Y'], ['findPercent', 'Find %'], ['change', '% increase'], ['reverse', 'Reverse %']] as const).map(([key, label]) => (
             <label key={key}><input type="checkbox" checked={config.percentages.modes[key]} onChange={(e) => edit((d) => { d.percentages.modes[key] = e.target.checked; })} /> {label}</label>
           ))}
         </div>
@@ -111,11 +110,7 @@ export function SetupPanel({
           <label><input type="checkbox" checked={config.fractions.reducedOnly} onChange={(e) => edit((d) => { d.fractions.reducedOnly = e.target.checked; })} /> Reduced only</label>
         </div>
         <div className="mode-list">
-          {([
-            ['toPercent', 'Fraction → %'],
-            ['toDecimal', 'Fraction → decimal'],
-            ['percentToFraction', '% → fraction'],
-          ] as const).map(([key, label]) => (
+          {([['toPercent', 'Fraction → %'], ['toDecimal', 'Fraction → decimal'], ['percentToFraction', '% → fraction']] as const).map(([key, label]) => (
             <label key={key}><input type="checkbox" checked={config.fractions.modes[key]} onChange={(e) => edit((d) => { d.fractions.modes[key] = e.target.checked; })} /> {label}</label>
           ))}
         </div>
@@ -133,12 +128,7 @@ export function SetupPanel({
         <p className="compact-copy">Startup funnels, runway, margins, probability and EV.</p>
       </fieldset>
 
-      {errors.length > 0 && (
-        <div className="error-box" role="alert">
-          {errors.map((error) => <div key={error}>{error}</div>)}
-        </div>
-      )}
-
+      {errors.length > 0 && <div className="error-box" role="alert">{errors.map((error) => <div key={error}>{error}</div>)}</div>}
       <button className="primary-button" type="button" disabled={errors.length > 0} onClick={onStart}>Start Drill</button>
     </div>
   );
