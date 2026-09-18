@@ -1,15 +1,17 @@
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { CSSProperties, FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { CustomizePanel } from './components/CustomizePanel';
 import { SetupPanel } from './components/SetupPanel';
 import { DEFAULT_CONFIG, enabledCategories, isCorrect, parseAnswer, validateConfig } from './lib/questions';
 import { pickQuestion, skillStats, slowThreshold } from './lib/progress';
-import { allAttempts, loadDrillConfig, loadSessions, saveDrillConfig, saveSession } from './lib/storage';
-import type { Attempt, DrillConfig, DrillMode, Question, SessionRecord } from './types';
+import { allAttempts, loadAppearance, loadDrillConfig, loadSessions, saveAppearance, saveDrillConfig, saveSession } from './lib/storage';
+import type { AppearanceConfig, Attempt, DrillConfig, DrillMode, Question, SessionRecord } from './types';
 
-type Screen = 'setup' | 'drill' | 'result' | 'review' | 'stats';
+type Screen = 'setup' | 'drill' | 'result' | 'review' | 'stats' | 'customize';
 
 function App() {
   const [screen, setScreen] = useState<Screen>('setup');
   const [config, setConfig] = useState<DrillConfig>(() => loadDrillConfig(DEFAULT_CONFIG));
+  const [appearance, setAppearance] = useState<AppearanceConfig>(loadAppearance);
   const [duration, setDuration] = useState(120);
   const [submitMode, setSubmitMode] = useState<'auto' | 'enter'>('auto');
   const [drillMode, setDrillMode] = useState<DrillMode>('adaptive');
@@ -26,7 +28,6 @@ function App() {
   const finishing = useRef(false);
 
   const history = useMemo(() => allAttempts(sessions), [sessions]);
-  const combinedHistory = useMemo(() => [...history, ...attempts], [history, attempts]);
   const stats = useMemo(() => skillStats(history).sort((a, b) => {
     const scoreA = (1 - a.accuracy) * 2 + a.slowRate;
     const scoreB = (1 - b.accuracy) * 2 + b.slowRate;
@@ -45,13 +46,8 @@ function App() {
   const fastest = attempts.length ? Math.min(...attempts.map((attempt) => attempt.ms)) : 0;
   const slowest = attempts.length ? Math.max(...attempts.map((attempt) => attempt.ms)) : 0;
 
-  useEffect(() => {
-    saveDrillConfig(config);
-  }, [config]);
-
-  function nextQuestion(previous?: Question): Question {
-    return pickQuestion(config, combinedHistory, previous, drillMode, weakFocus);
-  }
+  useEffect(() => saveDrillConfig(config), [config]);
+  useEffect(() => saveAppearance(appearance), [appearance]);
 
   function start(focusWeak = false) {
     if (errors.length) return;
@@ -64,8 +60,7 @@ function App() {
     const now = Date.now();
     startedAt.current = now;
     questionAt.current = now;
-    const first = pickQuestion(config, history, undefined, drillMode, focusWeak);
-    setQuestion(first);
+    setQuestion(pickQuestion(config, history, undefined, drillMode, focusWeak));
     setScreen('drill');
     requestAnimationFrame(() => inputRef.current?.focus());
   }
@@ -116,8 +111,7 @@ function App() {
     const nextAttempts = [...attemptsRef.current, attempt];
     attemptsRef.current = nextAttempts;
     setAttempts(nextAttempts);
-    const next = pickQuestion(config, [...history, ...nextAttempts], question, drillMode, weakFocus);
-    setQuestion(next);
+    setQuestion(pickQuestion(config, [...history, ...nextAttempts], question, drillMode, weakFocus));
     setAnswer('');
     questionAt.current = now;
     requestAnimationFrame(() => inputRef.current?.focus());
@@ -138,31 +132,27 @@ function App() {
   }
 
   const reviewItems = history.filter((attempt) => !attempt.correct || attempt.slow).slice(-60).reverse();
+  const style = {
+    '--desktop-color': appearance.desktopColor,
+    '--accent-color': appearance.accentColor,
+    '--window-max': appearance.windowWidth + 'px',
+    '--ui-font-size': appearance.fontSize + 'px',
+  } as CSSProperties;
 
   return (
-    <main className="desktop">
+    <main className={'desktop density-' + appearance.density} style={style}>
       <section className="app-window">
-        <header className="title-bar"><strong>Math That Matters</strong><span>×</span></header>
+        <header className="title-bar"><strong>{appearance.appLabel}</strong><span>×</span></header>
         <nav className="menu-bar" aria-label="Application">
           <button type="button" onClick={() => setScreen('setup')}>Drill</button>
           <button type="button" onClick={() => setScreen('review')}>Review</button>
           <button type="button" onClick={() => setScreen('stats')}>Stats</button>
+          <button type="button" onClick={() => setScreen('customize')}>Customize</button>
         </nav>
 
         {screen === 'setup' && (
           <div className="window-body">
-            <SetupPanel
-              config={config}
-              setConfig={setConfig}
-              duration={duration}
-              setDuration={setDuration}
-              submitMode={submitMode}
-              setSubmitMode={setSubmitMode}
-              drillMode={drillMode}
-              setDrillMode={setDrillMode}
-              errors={errors}
-              onStart={() => start(false)}
-            />
+            <SetupPanel config={config} setConfig={setConfig} duration={duration} setDuration={setDuration} submitMode={submitMode} setSubmitMode={setSubmitMode} drillMode={drillMode} setDrillMode={setDrillMode} errors={errors} onStart={() => start(false)} />
           </div>
         )}
 
@@ -172,16 +162,16 @@ function App() {
               <span>Time: {Math.ceil(remaining)}s</span>
               <span>Correct: {correct}</span>
               <span>Wrong: {attempts.length - correct}</span>
-              <span>Accuracy: {accuracy.toFixed(0)}%</span>
+              {appearance.showLiveAccuracy && <span>Accuracy: {accuracy.toFixed(0)}%</span>}
             </div>
-            <div className="question-area">
-              <div className="question-meta">{question.context} · {question.skill}</div>
+            <div className={'question-area align-' + appearance.drillAlign}>
+              {appearance.showQuestionMeta && <div className="question-meta">{question.context} · {question.skill}</div>}
               <div className="question-text">{question.prompt}</div>
               <form onSubmit={onSubmit}>
                 <input ref={inputRef} className="answer-input" inputMode="decimal" autoComplete="off" aria-label="Answer" value={answer} onChange={(event) => onChange(event.target.value)} />
               </form>
             </div>
-            <div className="status-bar">{submitMode === 'auto' ? 'Correct answer advances. Enter records the current answer.' : 'Enter submits.'}</div>
+            {appearance.showStatusBar && <div className="status-bar">{submitMode === 'auto' ? 'Correct answer advances. Enter records the current answer.' : 'Enter submits.'}</div>}
           </div>
         )}
 
@@ -224,10 +214,7 @@ function App() {
                   <tbody>{reviewItems.map((attempt, index) => (
                     <tr key={attempt.timestamp + '-' + index}>
                       <td>{attempt.question.prompt}<small>{attempt.question.skill}</small></td>
-                      <td>{attempt.userAnswer}</td>
-                      <td>{Number(attempt.question.answer.toFixed(4))}</td>
-                      <td>{(attempt.ms / 1000).toFixed(2)}s</td>
-                      <td>{!attempt.correct ? 'wrong' : 'slow'}</td>
+                      <td>{attempt.userAnswer}</td><td>{Number(attempt.question.answer.toFixed(4))}</td><td>{(attempt.ms / 1000).toFixed(2)}s</td><td>{!attempt.correct ? 'wrong' : 'slow'}</td>
                     </tr>
                   ))}</tbody>
                 </table>
@@ -241,8 +228,7 @@ function App() {
           <div className="window-body">
             <h1 className="section-title">Progress</h1>
             <div className="summary-strip">
-              <span>Sessions: {sessions.length}</span>
-              <span>Questions: {history.length}</span>
+              <span>Sessions: {sessions.length}</span><span>Questions: {history.length}</span>
               <span>Accuracy: {history.length ? (history.filter((a) => a.correct).length / history.length * 100).toFixed(1) : '0.0'}%</span>
               <span>Avg: {history.length ? (history.reduce((sum, a) => sum + a.ms, 0) / history.length / 1000).toFixed(2) : '0.00'}s</span>
             </div>
@@ -256,6 +242,8 @@ function App() {
             </div>
           </div>
         )}
+
+        {screen === 'customize' && <div className="window-body"><CustomizePanel value={appearance} onChange={setAppearance} /></div>}
       </section>
     </main>
   );

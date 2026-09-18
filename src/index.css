@@ -18,21 +18,74 @@ button {
 button:active:not(:disabled) { border-style: inset; }
 button:disabled { color: #777; }
 
-.desktop { min-height: 100vh; padding: 14px; background: #008080; }
-.app-window { width: min(900px, 100%); margin: 0 auto; background: #c0c0c0; border: 2px outset #fff; }
-.title-bar { display: flex; align-items: center; justify-content: space-between; min-height: 26px; padding: 3px 5px; background: #000080; color: #fff; }
-.title-bar span { width: 20px; height: 20px; display: grid; place-items: center; background: #c0c0c0; color: #000; border: 2px outset #fff; }
+.desktop {
+  min-height: 100vh;
+  padding: 12px;
+  background: var(--desktop-color, #008080);
+  font-size: var(--ui-font-size, 13px);
+}
+
+.app-window {
+  width: min(var(--window-max, 900px), 100%);
+  margin: 0 auto;
+  background: #c0c0c0;
+  border: 2px outset #fff;
+}
+
+.title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 26px;
+  padding: 3px 5px;
+  background: var(--accent-color, #000080);
+  color: #fff;
+}
+
+.title-bar span {
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  background: #c0c0c0;
+  color: #000;
+  border: 2px outset #fff;
+}
+
 .menu-bar { display: flex; gap: 2px; padding: 3px 5px; border-bottom: 1px solid #808080; }
 .menu-bar button { border: 0; min-height: auto; padding: 2px 8px; }
-.window-body { padding: 10px; }
-.section-title, .result-panel h1 { margin: 0 0 10px; font-size: 18px; }
+.window-body { padding: 9px; }
+.density-standard .window-body { padding: 14px; }
+.section-title, .result-panel h1 { margin: 0 0 9px; font-size: 18px; }
 
-.setup-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-fieldset { min-width: 0; margin: 0; padding: 8px; border: 2px groove #fff; }
+.setup-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+.density-standard .setup-grid { gap: 12px; }
+fieldset { min-width: 0; margin: 0; padding: 7px; border: 2px groove #fff; }
+.density-standard fieldset { padding: 11px; }
 legend { padding: 0 4px; }
-.range-row { display: grid; grid-template-columns: minmax(82px, 1fr) 72px 20px 72px; gap: 5px; align-items: center; margin: 4px 0; }
-input[type="number"], .answer-input { width: 100%; border: 2px inset #fff; background: #fff; color: #000; padding: 3px 5px; border-radius: 0; }
-.inline-controls, .mode-list { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin: 4px 0; }
+
+.range-row, .setting-row {
+  display: grid;
+  grid-template-columns: minmax(82px, 1fr) 72px 20px 72px;
+  gap: 5px;
+  align-items: center;
+  margin: 4px 0;
+}
+
+.setting-row { grid-template-columns: minmax(110px, 1fr) minmax(100px, 170px); }
+.setting-row input[type="text"], .setting-row input[type="number"] { min-width: 0; width: 100%; }
+
+input[type="number"], input[type="text"], .answer-input {
+  border: 2px inset #fff;
+  background: #fff;
+  color: #000;
+  padding: 3px 5px;
+  border-radius: 0;
+}
+
+input[type="color"] { width: 44px; height: 25px; padding: 0; border: 2px inset #fff; background: #c0c0c0; }
+
+.inline-controls, .mode-list { display: flex; align-items: center; flex-wrap: wrap; gap: 7px 11px; margin: 4px 0; }
 .compact-copy { margin: 4px 0; }
 small { display: block; margin-top: 3px; color: #444; }
 .error-box { grid-column: 1 / -1; border: 2px inset #fff; padding: 6px; background: #fff; }
@@ -40,26 +93,33 @@ small { display: block; margin-top: 3px; color: #444; }
 
 .drill-view { min-height: 440px; display: flex; flex-direction: column; }
 .drill-topline, .summary-strip { display: flex; gap: 18px; flex-wrap: wrap; padding: 7px 10px; border-bottom: 2px groove #fff; }
-.question-area { flex: 1; display: grid; place-content: center; justify-items: center; gap: 14px; padding: 36px 14px; }
-.question-meta { font-size: 12px; color: #444; }
-.question-text { max-width: 760px; text-align: center; font-size: clamp(28px, 6vw, 52px); font-weight: 700; }
+.question-area { flex: 1; display: grid; place-content: center; justify-items: center; gap: 13px; padding: 34px 14px; }
+.question-area.align-left { place-content: center start; justify-items: start; padding-left: clamp(18px, 9vw, 90px); }
+.question-area.align-left .question-text { text-align: left; }
+.question-meta { font-size: 0.9em; color: #444; }
+.question-text { max-width: 760px; text-align: center; font-size: clamp(28px, 6vw, 52px); font-weight: 700; line-height: 1.08; }
 .answer-input { width: min(280px, 80vw); font-size: 28px; text-align: center; }
 .status-bar { margin: 4px; padding: 4px 6px; border: 2px inset #fff; }
 
 .result-panel dl { margin: 0; width: min(420px, 100%); }
 .result-panel dl div { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px dotted #777; padding: 4px 0; }
 .result-panel dd { margin: 0; font-weight: 700; }
-.button-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.button-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 
-.compact-table-wrap { max-width: 100%; overflow-x: auto; margin-top: 10px; border: 2px inset #fff; background: #fff; }
-.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.compact-table-wrap { max-width: 100%; overflow-x: auto; margin-top: 9px; border: 2px inset #fff; background: #fff; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 0.95em; }
 .data-table th, .data-table td { padding: 5px 7px; border: 1px solid #aaa; text-align: left; white-space: nowrap; }
 .data-table th { background: #c0c0c0; }
 .data-table td:first-child { white-space: normal; min-width: 180px; }
 
+.customize-panel { display: grid; gap: 8px; }
+.customize-panel fieldset { max-width: 620px; }
+
 @media (max-width: 680px) {
-  .desktop { padding: 6px; }
+  .desktop { padding: 5px; }
   .setup-grid { grid-template-columns: 1fr; }
   .range-row { grid-template-columns: minmax(80px, 1fr) 66px 20px 66px; }
-  .question-area { padding: 28px 8px; }
+  .question-area, .question-area.align-left { padding: 28px 8px; place-content: center; justify-items: center; }
+  .question-area.align-left .question-text { text-align: center; }
+  .setting-row { grid-template-columns: minmax(100px, 1fr) minmax(90px, 150px); }
 }

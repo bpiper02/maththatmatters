@@ -99,3 +99,16 @@ export type DrillConfig = {
 };
 
 export type DrillMode = 'adaptive' | 'custom';
+
+export type AppearanceConfig = {
+  appLabel: string;
+  desktopColor: string;
+  accentColor: string;
+  windowWidth: number;
+  fontSize: number;
+  density: 'compact' | 'standard';
+  drillAlign: 'center' | 'left';
+  showQuestionMeta: boolean;
+  showLiveAccuracy: boolean;
+  showStatusBar: boolean;
+};
