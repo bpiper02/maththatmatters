@@ -3,7 +3,7 @@ import type { Category, DrillConfig, Question, Range } from '../types';
 type Rng = () => number;
 
 const FRIENDLY_PERCENTAGES = [1, 2, 5, 10, 12.5, 15, 20, 25, 30, 33.33, 37.5, 40, 50, 60, 62.5, 66.67, 75, 80, 87.5];
-const COMMON_FRACTIONS = [
+const COMMON_FRACTIONS: Array<[number, number]> = [
   [1, 2], [1, 3], [2, 3], [1, 4], [3, 4], [1, 5], [2, 5], [3, 5], [4, 5],
   [1, 6], [5, 6], [1, 8], [3, 8], [5, 8], [7, 8], [1, 10], [3, 10], [7, 10], [9, 10],
   [1, 12], [5, 12], [7, 12], [11, 12], [1, 16], [3, 16], [5, 16], [7, 16],
