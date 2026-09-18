@@ -3,7 +3,7 @@ import type { Category, DrillConfig, Question, Range } from '../types';
 type Rng = () => number;
 
 const FRIENDLY_PERCENTAGES = [1, 2, 5, 10, 12.5, 15, 20, 25, 30, 33.33, 37.5, 40, 50, 60, 62.5, 66.67, 75, 80, 87.5];
-const COMMON_FRACTIONS = [
+const COMMON_FRACTIONS: Array<[number, number]> = [
   [1, 2], [1, 3], [2, 3], [1, 4], [3, 4], [1, 5], [2, 5], [3, 5], [4, 5],
   [1, 6], [5, 6], [1, 8], [3, 8], [5, 8], [7, 8], [1, 10], [3, 10], [7, 10], [9, 10],
   [1, 12], [5, 12], [7, 12], [11, 12], [1, 16], [3, 16], [5, 16], [7, 16],
@@ -68,7 +68,7 @@ function q(base: Omit<Question, 'id' | 'signature'>): Question {
 }
 
 function validRange(range: Range): boolean {
-  return Number.isFinite(range.min) && Number.isFinite(range.max) && Math.min(range.min, range.max) <= Math.max(range.min, range.max);
+  return Number.isFinite(range.min) && Number.isFinite(range.max) && range.min <= range.max;
 }
 
 export function validateConfig(config: DrillConfig): string[] {
@@ -83,9 +83,14 @@ export function validateConfig(config: DrillConfig): string[] {
     ['Ratio left', config.ratios.left], ['Ratio right', config.ratios.right], ['Ratio scale', config.ratios.scale],
   ];
   for (const [name, range] of named) if (!validRange(range)) errors.push(name + ' range is invalid.');
-  if (Math.min(config.division.divisor.min, config.division.divisor.max) <= 0) errors.push('Division divisor must stay above 0.');
-  if (Math.min(config.fractions.denominator.min, config.fractions.denominator.max) <= 0) errors.push('Fraction denominator must stay above 0.');
-  if (!config.subtraction.allowNegative && Math.max(config.subtraction.left.min, config.subtraction.left.max) < Math.min(config.subtraction.right.min, config.subtraction.right.max)) {
+  if (config.division.divisor.min <= 0) errors.push('Division divisor must stay above 0.');
+  if (config.fractions.denominator.min <= 0) errors.push('Fraction denominator must stay above 0.');
+  if (config.percentages.enabled && !Object.values(config.percentages.modes).some(Boolean)) errors.push('Enable at least one percentage mode.');
+  if (config.fractions.enabled && !Object.values(config.fractions.modes).some(Boolean)) errors.push('Enable at least one fraction mode.');
+  if (config.fractions.enabled && config.fractions.properOnly && config.fractions.numerator.min >= config.fractions.denominator.max) {
+    errors.push('Fraction ranges cannot produce a proper fraction.');
+  }
+  if (!config.subtraction.allowNegative && config.subtraction.left.max < config.subtraction.right.min) {
     errors.push('Subtraction ranges cannot produce a non-negative answer.');
   }
   return errors;
