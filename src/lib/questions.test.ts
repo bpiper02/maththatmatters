@@ -31,4 +31,23 @@ describe('question engine', () => {
     config.subtraction.right = { min: 10, max: 20 };
     expect(validateConfig(config).some((error) => error.includes('Subtraction'))).toBe(true);
   });
+
+  it('rejects reversed numeric ranges instead of silently swapping them', () => {
+    const config = structuredClone(DEFAULT_CONFIG);
+    config.multiplication.left = { min: 12, max: 2 };
+    expect(validateConfig(config).some((error) => error.includes('Multiplication left'))).toBe(true);
+  });
+
+  it('requires at least one enabled percentage mode', () => {
+    const config = structuredClone(DEFAULT_CONFIG);
+    config.percentages.modes = { of: false, findPercent: false, change: false, reverse: false };
+    expect(validateConfig(config)).toContain('Enable at least one percentage mode.');
+  });
+
+  it('rejects fraction ranges that cannot produce a proper fraction', () => {
+    const config = structuredClone(DEFAULT_CONFIG);
+    config.fractions.numerator = { min: 9, max: 12 };
+    config.fractions.denominator = { min: 2, max: 8 };
+    expect(validateConfig(config)).toContain('Fraction ranges cannot produce a proper fraction.');
+  });
 });
